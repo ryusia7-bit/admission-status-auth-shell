@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>입퇴원현황(정신건강팀) · 로그인</title>
+  <style>
+    :root { color: #20323f; background: #f3f7fa; font-family: "Malgun Gothic", Arial, sans-serif; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; }
+    main { width: min(480px, calc(100% - 32px)); background: #fff; border: 1px solid #cbd8e3; box-shadow: 0 8px 28px #21394a18; }
+    header { padding: 22px 26px; background: #117ed5; color: #fff; } h1 { margin: 0; font-size: 22px; }
+    .content { padding: 26px; } p { line-height: 1.65; } .notice { padding: 12px; background: #fff8e9; border: 1px solid #ead6a0; color: #674d16; }
+    #googleSignIn { min-height: 42px; margin: 18px 0; } #state { color: #546574; font-size: 13px; }
+    footer { margin-top: 18px; color: #697985; font-size: 12px; } iframe { display: none; }
+  </style>
+</head>
+<body>
+  <main>
+    <header><h1>입퇴원현황(정신건강팀)</h1></header>
+    <div class="content">
+      <p>승인된 계정인지 확인한 뒤 해당 병원의 업무 화면으로 이동합니다.</p>
+      <p class="notice">이 로그인 화면에는 대상자 목록·검색·저장 기능이 없습니다. 실제 환자 정보를 입력하지 마세요.</p>
+      <div id="googleSignIn" aria-label="Google 로그인"></div>
+      <p id="state" role="status" aria-live="polite">안전한 업무 화면 연결을 확인하는 중입니다.</p>
+      <footer>신원 토큰은 저장하거나 화면에 표시하지 않습니다.</footer>
+    </div>
+  </main>
+  <iframe id="admissionBackend" title="입퇴원현황 업무 화면" sandbox="allow-scripts allow-same-origin"></iframe>
+  <script>
+    (() => {
+      'use strict';
+      const state = document.getElementById('state');
+      const frame = document.getElementById('admissionBackend');
+      const config = window.__ADMISSION_AUTH_SHELL_CONFIG__;
+      let backendReady = false;
+      let pendingCredential = '';
+      let channel = '';
+
+      function show(message) { state.textContent = message; }
+      function httpsOrigin(value) {
+        try { const url = new URL(value); return url.protocol === 'https:' && url.origin === value && !url.username && !url.password; }
+        catch (_) { return false; }
+      }
+      function validConfig(value) {
+        if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+        const keys = Object.keys(value).sort().join(',');
+        if (keys !== 'backendFrameUrl,backendOrigin,clientId') return false;
+        if (!httpsOrigin(value.backendOrigin) || typeof value.backendFrameUrl !== 'string' || typeof value.clientId !== 'string' || value.clientId.length < 10 || value.clientId.length > 200) return false;
+        try { return new URL(value.backendFrameUrl).origin === value.backendOrigin; } catch (_) { return false; }
+      }
+      function createChannel() {
+        const bytes = new Uint8Array(24); crypto.getRandomValues(bytes);
+        return Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
+      }
+      function sendCredential() {
+        if (!backendReady || !pendingCredential || !channel || !validConfig(config) || frame.contentWindow === null) return;
+        const credential = pendingCredential; pendingCredential = '';
+        frame.contentWindow.postMessage({ type: 'ADMISSION_G0_ID_TOKEN', channel, credential }, config.backendOrigin);
+        show('신원을 확인하고 있습니다. 완료될 때까지 창을 닫지 마세요.');
+      }
+      function onCredential(response) {
+        const credential = response && response.credential;
+        if (typeof credential !== 'string' || credential.length < 20 || credential.length > 8192) { show('로그인 정보를 확인하지 못했습니다. 다시 시도하세요.'); return; }
+        pendingCredential = credential;
+        if (backendReady) sendCredential(); else show('안전한 업무 화면 연결을 기다리는 중입니다.');
+      }
+      function loadGoogleIdentity() {
+        const script = document.createElement('script');
+        script.src = 'https://accounts.google.com/gsi/client'; script.async = true; script.defer = true;
+        script.addEventListener('load', () => {
+          if (!window.google || !google.accounts || !google.accounts.id) { show('로그인 기능을 불러오지 못했습니다.'); return; }
+          google.accounts.id.initialize({ client_id: config.clientId, callback: onCredential, auto_select: false, cancel_on_tap_outside: true });
+          google.accounts.id.renderButton(document.getElementById('googleSignIn'), { theme: 'outline', size: 'large', text: 'signin_with', width: 260 });
+          show('Google 계정으로 로그인하세요.');
+        });
+        script.addEventListener('error', () => show('로그인 기능을 불러오지 못했습니다.'));
+        document.head.append(script);
+      }
+      if (!validConfig(config)) { show('가상 검증 설정이 없어 로그인할 수 없습니다.'); return; }
+      channel = createChannel();
+      frame.src = config.backendFrameUrl + '#g0-channel=' + encodeURIComponent(channel);
+      window.addEventListener('message', event => {
+        const message = event.data;
+        if (event.origin !== config.backendOrigin || event.source !== frame.contentWindow || !message || typeof message !== 'object' || Array.isArray(message)) return;
+        if (message.type !== 'ADMISSION_G0_BACKEND_READY' || message.channel !== channel || Object.keys(message).sort().join(',') !== 'channel,type') return;
+        backendReady = true; sendCredential();
+      });
+      loadGoogleIdentity();
+    })();
+  </script>
+</body>
+</html>
