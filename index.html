@@ -13,6 +13,9 @@
     #googleSignIn { min-height: 42px; margin: 18px 0; } #state { color: #546574; font-size: 13px; }
     footer { margin-top: 18px; color: #697985; font-size: 12px; }
     #admissionBackend { position: fixed; width: 1px; height: 1px; opacity: 0; pointer-events: none; border: 0; left: -1px; top: -1px; }
+    body.authenticated { display: block; background: #fff; }
+    body.authenticated main { display: none; }
+    body.authenticated #admissionBackend { position: fixed; inset: 0; width: 100vw; height: 100vh; opacity: 1; pointer-events: auto; border: 0; }
   </style>
 </head>
 <body>
@@ -107,8 +110,15 @@
           backendSource.postMessage({ type: 'ADMISSION_G0_BRIDGE_INIT', channel }, config.backendOrigin);
           return;
         }
-        if (event.source !== backendSource || message.type !== 'ADMISSION_G0_BACKEND_READY' || message.channel !== channel || Object.keys(message).sort().join(',') !== 'channel,type') return;
-        backendReady = true; sendCredential();
+        if (event.source !== backendSource || message.channel !== channel) return;
+        if (message.type === 'ADMISSION_G0_BACKEND_READY' && Object.keys(message).sort().join(',') === 'channel,type') {
+          backendReady = true; sendCredential();
+          return;
+        }
+        if (message.type === 'ADMISSION_G0_AUTHENTICATED' && Object.keys(message).sort().join(',') === 'channel,type') {
+          pendingCredential = '';
+          document.body.classList.add('authenticated');
+        }
       });
       loadGoogleIdentity();
     })();
