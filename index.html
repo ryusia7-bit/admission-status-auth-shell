@@ -41,6 +41,7 @@
       const frame = document.getElementById('admissionBackend');
       const config = window.__ADMISSION_AUTH_SHELL_CONFIG__;
       let backendReady = false;
+      let backendSource = null;
       let pendingCredential = '';
       let channel = '';
 
@@ -66,16 +67,12 @@
             /^\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(url.pathname);
         } catch (_) { return false; }
       }
-      function backendWindow() {
-        try { return frame.contentWindow && frame.contentWindow.frames[0] || null; }
-        catch (_) { return null; }
-      }
       function createChannel() {
         const bytes = new Uint8Array(24); crypto.getRandomValues(bytes);
         return Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
       }
       function sendCredential() {
-        const target = backendWindow();
+        const target = backendSource;
         if (!backendReady || !pendingCredential || !channel || !validConfig(config) || target === null) return;
         const credential = pendingCredential; pendingCredential = '';
         target.postMessage({ type: 'ADMISSION_G0_ID_TOKEN', channel, credential }, config.backendOrigin);
@@ -104,13 +101,13 @@
       frame.src = config.backendFrameUrl;
       window.addEventListener('message', event => {
         const message = event.data;
-        if (event.origin !== config.backendOrigin || event.source !== backendWindow() || !message || typeof message !== 'object' || Array.isArray(message)) return;
-        if (message.type === 'ADMISSION_G0_BACKEND_WAITING' && Object.keys(message).sort().join(',') === 'type') {
-          const target = backendWindow();
-          if (target) target.postMessage({ type: 'ADMISSION_G0_BRIDGE_INIT', channel }, config.backendOrigin);
+        if (event.origin !== config.backendOrigin || !event.source || !message || typeof message !== 'object' || Array.isArray(message)) return;
+        if (message.type === 'ADMISSION_G0_BACKEND_WAITING' && backendSource === null && Object.keys(message).sort().join(',') === 'type') {
+          backendSource = event.source;
+          backendSource.postMessage({ type: 'ADMISSION_G0_BRIDGE_INIT', channel }, config.backendOrigin);
           return;
         }
-        if (message.type !== 'ADMISSION_G0_BACKEND_READY' || message.channel !== channel || Object.keys(message).sort().join(',') !== 'channel,type') return;
+        if (event.source !== backendSource || message.type !== 'ADMISSION_G0_BACKEND_READY' || message.channel !== channel || Object.keys(message).sort().join(',') !== 'channel,type') return;
         backendReady = true; sendCredential();
       });
       loadGoogleIdentity();

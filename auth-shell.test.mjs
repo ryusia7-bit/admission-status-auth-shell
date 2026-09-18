@@ -15,7 +15,9 @@ test('가상 로그인 껍데기는 업무 데이터와 실제 운영 설정을 
 
 test('토큰 전달은 고정 출처, iframe 출처, 일회용 채널을 모두 요구한다', () => {
   assert.match(source, /event\.origin !== config\.backendOrigin/);
-  assert.match(source, /event\.source !== backendWindow\(\)/);
+  assert.match(source, /let backendSource = null/);
+  assert.match(source, /backendSource = event\.source/);
+  assert.match(source, /event\.source !== backendSource/);
   assert.match(source, /message\.channel !== channel/);
   assert.match(source, /message\.type === 'ADMISSION_G0_BACKEND_WAITING'/);
   assert.match(source, /type: 'ADMISSION_G0_BRIDGE_INIT', channel/);
