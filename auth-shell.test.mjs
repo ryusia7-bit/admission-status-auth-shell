@@ -7,12 +7,13 @@ const source = await readFile(new URL('./index.html', import.meta.url), 'utf8');
 test('가상 로그인 껍데기는 업무 데이터와 실제 운영 설정을 포함하지 않는다', () => {
   assert.match(source, /__ADMISSION_AUTH_SHELL_CONFIG__/);
   assert.doesNotMatch(source, /spreadsheets\/d\/|@(?:gmail|homeless)\.or\.kr/i);
-  assert.match(source, /backendFrameUrl: 'https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec'/);
+  assert.match(source, /backendFrameUrl: 'https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec\?release=20'/);
   assert.match(source, /backendOrigin: 'https:\/\/n-[a-z0-9-]+-script\.googleusercontent\.com'/);
   assert.match(source, /backendOrigin: 'https:\/\/n-ezwkxknyfo2awmbui4rwvioxivb577rfj4efx7q-1lu-script\.googleusercontent\.com'/);
   assert.doesNotMatch(source, /f7q-0lu-script\.googleusercontent\.com/);
   assert.doesNotMatch(source, /localStorage|sessionStorage|innerHTML/i);
   assert.match(source, /#admissionBackend \{ position: fixed/);
+  assert.match(source, /url\.search === '\?release=20' && !url\.hash/);
   assert.doesNotMatch(source, /\} iframe \{ position: fixed/);
   assert.match(source, /대상자 목록·검색·저장 기능이 없습니다/);
 });
