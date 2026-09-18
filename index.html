@@ -27,6 +27,13 @@
   </main>
   <iframe id="admissionBackend" title="입퇴원현황 업무 화면" sandbox="allow-scripts allow-same-origin"></iframe>
   <script>
+    // G0 has no data or secret here: only the public OAuth client and fixed frames.
+    window.__ADMISSION_AUTH_SHELL_CONFIG__ = Object.freeze({
+      backendFrameUrl: 'https://script.google.com/macros/s/AKfycbzgToyJtWJC2VhECQWYyum1FEVafnFYUYqdybi5YTQw40T302OfRQNHyQc3FA1oNqNl/exec',
+      backendOuterOrigin: 'https://script.google.com',
+      backendOrigin: 'https://n-ezwkxknyfo2awmbui4rwvioxivb577rfj4efx7q-1lu-script.googleusercontent.com',
+      clientId: '1049058766076-33417p06nrftlfgpt611f52s9tjiusg3.apps.googleusercontent.com'
+    });
     (() => {
       'use strict';
       const state = document.getElementById('state');
@@ -47,18 +54,30 @@
       function validConfig(value) {
         if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
         const keys = Object.keys(value).sort().join(',');
-        if (keys !== 'backendFrameUrl,backendOrigin,clientId') return false;
-        if (!httpsOrigin(value.backendOrigin) || typeof value.backendFrameUrl !== 'string' || typeof value.clientId !== 'string' || value.clientId.length < 10 || value.clientId.length > 200) return false;
-        try { return new URL(value.backendFrameUrl).origin === value.backendOrigin; } catch (_) { return false; }
+        if (keys !== 'backendFrameUrl,backendOrigin,backendOuterOrigin,clientId') return false;
+        if (!httpsOrigin(value.backendOrigin) || !httpsOrigin(value.backendOuterOrigin) ||
+            typeof value.backendFrameUrl !== 'string' || typeof value.clientId !== 'string' ||
+            value.clientId.length < 10 || value.clientId.length > 200 ||
+            !/^https:\/\/n-[a-z0-9-]+-script\.googleusercontent\.com$/.test(value.backendOrigin)) return false;
+        try {
+          const url = new URL(value.backendFrameUrl);
+          return url.origin === value.backendOuterOrigin && url.origin === 'https://script.google.com' &&
+            /^\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(url.pathname);
+        } catch (_) { return false; }
+      }
+      function backendWindow() {
+        try { return frame.contentWindow && frame.contentWindow.frames[0] || null; }
+        catch (_) { return null; }
       }
       function createChannel() {
         const bytes = new Uint8Array(24); crypto.getRandomValues(bytes);
         return Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
       }
       function sendCredential() {
-        if (!backendReady || !pendingCredential || !channel || !validConfig(config) || frame.contentWindow === null) return;
+        const target = backendWindow();
+        if (!backendReady || !pendingCredential || !channel || !validConfig(config) || target === null) return;
         const credential = pendingCredential; pendingCredential = '';
-        frame.contentWindow.postMessage({ type: 'ADMISSION_G0_ID_TOKEN', channel, credential }, config.backendOrigin);
+        target.postMessage({ type: 'ADMISSION_G0_ID_TOKEN', channel, credential }, config.backendOrigin);
         show('신원을 확인하고 있습니다. 완료될 때까지 창을 닫지 마세요.');
       }
       function onCredential(response) {
@@ -84,7 +103,7 @@
       frame.src = config.backendFrameUrl + '#g0-channel=' + encodeURIComponent(channel);
       window.addEventListener('message', event => {
         const message = event.data;
-        if (event.origin !== config.backendOrigin || event.source !== frame.contentWindow || !message || typeof message !== 'object' || Array.isArray(message)) return;
+        if (event.origin !== config.backendOrigin || event.source !== backendWindow() || !message || typeof message !== 'object' || Array.isArray(message)) return;
         if (message.type !== 'ADMISSION_G0_BACKEND_READY' || message.channel !== channel || Object.keys(message).sort().join(',') !== 'channel,type') return;
         backendReady = true; sendCredential();
       });
