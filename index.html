@@ -101,10 +101,15 @@
       }
       if (!validConfig(config)) { show('가상 검증 설정이 없어 로그인할 수 없습니다.'); return; }
       channel = createChannel();
-      frame.src = config.backendFrameUrl + '#g0-channel=' + encodeURIComponent(channel);
+      frame.src = config.backendFrameUrl;
       window.addEventListener('message', event => {
         const message = event.data;
         if (event.origin !== config.backendOrigin || event.source !== backendWindow() || !message || typeof message !== 'object' || Array.isArray(message)) return;
+        if (message.type === 'ADMISSION_G0_BACKEND_WAITING' && Object.keys(message).sort().join(',') === 'type') {
+          const target = backendWindow();
+          if (target) target.postMessage({ type: 'ADMISSION_G0_BRIDGE_INIT', channel }, config.backendOrigin);
+          return;
+        }
         if (message.type !== 'ADMISSION_G0_BACKEND_READY' || message.channel !== channel || Object.keys(message).sort().join(',') !== 'channel,type') return;
         backendReady = true; sendCredential();
       });

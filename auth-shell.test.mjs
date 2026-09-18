@@ -17,6 +17,8 @@ test('토큰 전달은 고정 출처, iframe 출처, 일회용 채널을 모두 
   assert.match(source, /event\.origin !== config\.backendOrigin/);
   assert.match(source, /event\.source !== backendWindow\(\)/);
   assert.match(source, /message\.channel !== channel/);
+  assert.match(source, /message\.type === 'ADMISSION_G0_BACKEND_WAITING'/);
+  assert.match(source, /type: 'ADMISSION_G0_BRIDGE_INIT', channel/);
   assert.match(source, /Object\.keys\(message\)\.sort\(\)\.join\(','\) !== 'channel,type'/);
   assert.match(source, /target\.postMessage\([^\n]+config\.backendOrigin\)/);
   assert.doesNotMatch(source, /postMessage\([^\n]+,\s*['"]\*['"]\)/);
