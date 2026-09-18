@@ -37,6 +37,9 @@
       let channel = '';
 
       function show(message) { state.textContent = message; }
+      // GitHub Pages cannot set a response-level frame-ancestors policy. Do not render
+      // Google sign-in when an untrusted site embeds this shell.
+      if (window.top !== window.self) { show('직접 연 로그인 화면에서만 사용할 수 있습니다.'); return; }
       function httpsOrigin(value) {
         try { const url = new URL(value); return url.protocol === 'https:' && url.origin === value && !url.username && !url.password; }
         catch (_) { return false; }
