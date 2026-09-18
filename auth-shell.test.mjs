@@ -10,6 +10,8 @@ test('가상 로그인 껍데기는 업무 데이터와 실제 운영 설정을 
   assert.match(source, /backendFrameUrl: 'https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec'/);
   assert.match(source, /backendOrigin: 'https:\/\/n-[a-z0-9-]+-script\.googleusercontent\.com'/);
   assert.doesNotMatch(source, /localStorage|sessionStorage|innerHTML/i);
+  assert.match(source, /#admissionBackend \{ position: fixed/);
+  assert.doesNotMatch(source, /\} iframe \{ position: fixed/);
   assert.match(source, /대상자 목록·검색·저장 기능이 없습니다/);
 });
 
