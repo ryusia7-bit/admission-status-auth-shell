@@ -29,6 +29,7 @@ test('토큰 전달은 고정 출처, iframe 출처, 일회용 채널을 모두 
   assert.match(source, /target\.postMessage\([^\n]+config\.backendOrigin\)/);
   assert.doesNotMatch(source, /postMessage\([^\n]+,\s*['"]\*['"]\)/);
   assert.match(source, /sandbox="allow-scripts allow-same-origin"/);
+  assert.match(source, /<iframe[^>]+credentialless/);
   assert.doesNotMatch(source, /allow-top-navigation|allow-popups|allow-forms/);
   assert.match(source, /if \(window\.top !== window\.self\) \{ show\('직접 연 로그인 화면에서만 사용할 수 있습니다\.'\); return; \}/);
 });
