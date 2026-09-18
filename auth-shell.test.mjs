@@ -9,8 +9,8 @@ test('가상 로그인 껍데기는 업무 데이터와 실제 운영 설정을 
   assert.doesNotMatch(source, /spreadsheets\/d\/|@(?:gmail|homeless)\.or\.kr/i);
   assert.match(source, /backendFrameUrl: 'https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec'/);
   assert.match(source, /backendOrigin: 'https:\/\/n-[a-z0-9-]+-script\.googleusercontent\.com'/);
-  assert.match(source, /backendOrigin: 'https:\/\/n-ezwkxknyfo2awmbui4rwvioxivb577rfj4efx7q-0lu-script\.googleusercontent\.com'/);
-  assert.doesNotMatch(source, /f7q-1lu-script\.googleusercontent\.com/);
+  assert.match(source, /backendOrigin: 'https:\/\/n-ezwkxknyfo2awmbui4rwvioxivb577rfj4efx7q-1lu-script\.googleusercontent\.com'/);
+  assert.doesNotMatch(source, /f7q-0lu-script\.googleusercontent\.com/);
   assert.doesNotMatch(source, /localStorage|sessionStorage|innerHTML/i);
   assert.match(source, /#admissionBackend \{ position: fixed/);
   assert.doesNotMatch(source, /\} iframe \{ position: fixed/);
