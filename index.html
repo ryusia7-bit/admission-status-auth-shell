@@ -98,9 +98,8 @@
         script.src = 'https://accounts.google.com/gsi/client'; script.async = true; script.defer = true;
         script.addEventListener('load', () => {
           if (!window.google || !google.accounts || !google.accounts.id) { show('로그인 기능을 불러오지 못했습니다.'); return; }
-          google.accounts.id.initialize({ client_id: config.clientId, callback: onCredential, auto_select: true,
+          google.accounts.id.initialize({ client_id: config.clientId, callback: onCredential,
             cancel_on_tap_outside: true });
-          google.accounts.id.prompt();
           google.accounts.id.renderButton(document.getElementById('googleSignIn'), { theme: 'outline', size: 'large', text: 'signin_with', width: 260 });
           show('Google 계정으로 로그인하세요.');
         });

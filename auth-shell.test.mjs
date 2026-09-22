@@ -44,9 +44,8 @@ test('설정과 자격증명 형식이 맞지 않으면 로그인 토큰을 전�
   assert.match(source, /pendingCredential = ''/);
 });
 
-test('새로고침은 Google 세션에서만 자동 재인증을 요청하고 토큰을 저장하지 않는다', () => {
-  assert.match(source, /auto_select: true/);
+test('로그인 버튼은 브라우저 저장소나 자동 인증 요청 없이 동작한다', () => {
+  assert.doesNotMatch(source, /auto_select|google\.accounts\.id\.prompt\(\)/);
   assert.doesNotMatch(source, /use_fedcm_for_button|button_auto_select/);
-  assert.match(source, /google\.accounts\.id\.prompt\(\);/);
   assert.doesNotMatch(source, /localStorage|sessionStorage/);
 });
