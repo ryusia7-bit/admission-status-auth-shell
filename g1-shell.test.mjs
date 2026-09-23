@@ -26,3 +26,13 @@ test('G1 login shell keeps data out of the public page and targets only its fixe
   assert.match(source,/backendWindow\.postMessage\(\{[^}]*type:\s*'ADMISSION_G1_ID_TOKEN'[^}]*\},\s*config\.backendOuterOrigin\)/);
   assert.doesNotMatch(source,/postMessage\([^,]+,\s*backendOrigin\)/);
 });
+
+test('G1 waiting diagnostic warns only non-sensitive bridge telemetry',()=>{
+  const calls=source.match(/console\.warn\([^)]*\)/g);
+  assert.equal(calls?.length,1);
+  assert.match(calls[0],/^console\.warn\('G1_BRIDGE_WAITING',\s*event\.origin,\s*event\.source\s*===\s*popupWindow\)$/);
+  assert.match(calls[0],/'G1_BRIDGE_WAITING'/);
+  assert.match(calls[0],/event\.origin/);
+  assert.match(calls[0],/event\.source\s*===\s*popupWindow/);
+  assert.doesNotMatch(calls[0],/credential|channel|email|request|stack/i);
+});
