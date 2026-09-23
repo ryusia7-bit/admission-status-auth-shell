@@ -11,6 +11,7 @@ test('G1 login shell uses the verified iframe bridge and keeps data out of the p
   assert.match(source,/<iframe id="admissionBackend"[^>]*sandbox="allow-scripts allow-same-origin"/);
   assert.doesNotMatch(source,/<iframe[^>]*credentialless/);
   assert.match(source,/frame\.src=config\.backendFrameUrl/);
+  assert.ok(source.indexOf("window.addEventListener('message'") < source.indexOf('frame.src=config.backendFrameUrl'), 'parent listener must be ready before the backend iframe loads');
   assert.match(source,/event\.source\s*!==\s*backendSource/);
   assert.match(source,/event\.origin\s*!==\s*backendOrigin/);
   assert.match(source,/message\.channel\s*!==\s*channel/);
