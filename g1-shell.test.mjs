@@ -9,7 +9,13 @@ test('G1 login shell keeps data out of the public page and targets only its fixe
   assert.match(source,/ADMISSION_G1_AUTHENTICATED/);
   assert.match(source,/window\.open\(config\.backendFrameUrl/);
   assert.match(source,/event\.source\s*!==\s*backendWindow/);
+  assert.match(source,/event\.origin\s*!==\s*backendOrigin/);
+  assert.match(source,/message\.channel\s*!==\s*channel/);
+  assert.match(source,/backendOrigin\s*=\s*event\.origin/);
   assert.match(source,/config\.backendOrigins\.includes\(event\.origin\)/);
+  assert.match(source,/event\.origin\s*===\s*config\.backendOuterOrigin\s*&&\s*event\.source\s*===\s*popupWindow/);
+  assert.match(source,/config\.backendOrigins\.includes\(event\.origin\)\s*\|\|\s*\(event\.origin\s*===\s*config\.backendOuterOrigin\s*&&\s*event\.source\s*===\s*popupWindow\)/);
+  assert.doesNotMatch(source,/event\.origin\s*===\s*config\.backendOuterOrigin(?!\s*&&\s*event\.source\s*===\s*popupWindow)/);
   assert.doesNotMatch(source,/\*\.googleusercontent\.com/);
   assert.match(source,/credential\.length\s*<\s*20\s*\|\|\s*credential\.length\s*>\s*8192/);
   assert.match(source,/id="openBackend"/);
