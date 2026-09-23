@@ -8,7 +8,8 @@ test('G1 login shell uses the verified iframe bridge and keeps data out of the p
   assert.match(source,/ADMISSION_G1_BRIDGE_INIT/);
   assert.match(source,/ADMISSION_G1_ID_TOKEN/);
   assert.match(source,/ADMISSION_G1_AUTHENTICATED/);
-  assert.match(source,/<iframe id="admissionBackend"[^>]*sandbox="allow-scripts allow-same-origin"[^>]*credentialless/);
+  assert.match(source,/<iframe id="admissionBackend"[^>]*sandbox="allow-scripts allow-same-origin"/);
+  assert.doesNotMatch(source,/<iframe[^>]*credentialless/);
   assert.match(source,/frame\.src=config\.backendFrameUrl/);
   assert.match(source,/event\.source\s*!==\s*backendSource/);
   assert.match(source,/event\.origin\s*!==\s*backendOrigin/);
