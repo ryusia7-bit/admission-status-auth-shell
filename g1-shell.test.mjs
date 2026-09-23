@@ -16,4 +16,7 @@ test('G1 login shell keeps data out of the public page and targets only its fixe
   assert.doesNotMatch(source,/<iframe\b/);
   assert.doesNotMatch(source,/innerHTML|localStorage|sessionStorage|type="password"|postMessage\([^,]+,\s*['"]\*['"]\)/);
   assert.doesNotMatch(source,/spreadsheets\/d\/|_원본파일ID|대상자명|환자/);
+  assert.match(source,/backendWindow\.postMessage\(\{[^}]*type:\s*'ADMISSION_G1_BRIDGE_INIT'[^}]*\},\s*config\.backendOuterOrigin\)/);
+  assert.match(source,/backendWindow\.postMessage\(\{[^}]*type:\s*'ADMISSION_G1_ID_TOKEN'[^}]*\},\s*config\.backendOuterOrigin\)/);
+  assert.doesNotMatch(source,/postMessage\([^,]+,\s*backendOrigin\)/);
 });
