@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 const source = await readFile(new URL('./index.html', import.meta.url), 'utf8');
+const v2Source = await readFile(new URL('./v2.html', import.meta.url), 'utf8');
 
 test('가상 로그인 껍데기는 업무 데이터와 실제 운영 설정을 포함하지 않는다', () => {
   assert.match(source, /__ADMISSION_AUTH_SHELL_CONFIG__/);
@@ -48,4 +49,10 @@ test('로그인 버튼은 브라우저 저장소나 자동 인증 요청 없이 
   assert.doesNotMatch(source, /auto_select|google\.accounts\.id\.prompt\(\)/);
   assert.doesNotMatch(source, /use_fedcm_for_button|button_auto_select/);
   assert.doesNotMatch(source, /localStorage|sessionStorage/);
+});
+
+test('v2 가상 셸은 지정된 시험 계정을 우선 표시하되 자동 로그인은 하지 않는다', () => {
+  assert.match(v2Source, /login_hint:'[^']+@gmail\.com'/);
+  assert.match(v2Source, /auto_select:false/);
+  assert.doesNotMatch(v2Source, /button_auto_select\s*:\s*true/);
 });
